@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Snake Game!</title>
+    </head>
+    <body>
+        <script>
+            const snakeGame = () => {
+                class Feed {
+                    constructor() {
+                        this.element = document.getElementById("feed");
+                        this.element.style.cssText = `position: fixed; width: 10px; height: 10px; border-radius: 100px; background-color: gray; opacity: 0.4; z-index:10;`;
+                        this.position = { x: null, y: null };
+                        this.isActive = false;
+                    }
+
+                    generate() {
+                        const screenWidth = window.innerWidth;
+                        const screenHeight = window.innerHeight;
+                        const randomX = Math.random() * (screenWidth - 10);
+                        const randomY = Math.random() * (screenHeight - 10);
+
+                        this.position.x = randomX;
+                        this.position.y = randomY;
+                        this.element.style.left = `${this.position.x}px`;
+                        this.element.style.top = `${this.position.y}px`;
+                        this.element.style.display = "block";
+                        this.isActive = true;
+                    }
+
+                    deactivate() {
+                        this.element.style.display = "none";
+                        this.isActive = false;
+                        this.generate();
+                    }
+                }
+
+                class Snake {
+                    constructor() {
+                        this.element = document.getElementById("snake");
+                        this.body = [{ x: 100, y: 100 }];
+                        this.length = 1;
+                        this.speed = 5;
+                        this.updateSnakeElement();
+                    }
+
+                    updateSnakeElement() {
+                        this.element.innerHTML = ""; // 기존의 자식 요소 삭제
+                        for (let segment of this.body) {
+                            const segmentDiv = document.createElement("div");
+                            segmentDiv.style.cssText = `position: fixed; width: 10px; height: 10px; border-radius: 100px; background-color: green; opacity: 0.4; z-index:10;`;
+                            segmentDiv.style.left = `${segment.x}px`;
+                            segmentDiv.style.top = `${segment.y}px`;
+                            this.element.appendChild(segmentDiv);
+                        }
+                    }
+
+                    moveTowards(feed) {
+                        const head = { ...this.body[0] };
+
+                        if (Math.abs(head.x - feed.position.x) < this.speed)
+                            head.x = feed.position.x;
+                        if (Math.abs(head.y - feed.position.y) < this.speed)
+                            head.y = feed.position.y;
+                        else if (head.x < feed.position.x) head.x += this.speed;
+                        else if (head.x > feed.position.x) head.x -= this.speed;
+                        else if (head.y < feed.position.y) head.y += this.speed;
+                        else if (head.y > feed.position.y) head.y -= this.speed;
+
+                        // 머리를 맨 앞에 추가하고 꼬리를 제거
+                        this.body.unshift(head);
+
+                        if (
+                            Math.abs(head.x - feed.position.x) < 10 &&
+                            Math.abs(head.y - feed.position.y) < 10
+                        ) {
+                            feed.deactivate();
+                            this.length += 1;
+                        } else {
+                            this.body.pop(); // 이동 후 꼬리 제거
+                        }
+
+                        this.updateSnakeElement(); // Snake의 각 부분을 업데이트
+                    }
+                }
+
+                const initGame = () => {
+                    const gameSection = document.createElement("section");
+                    gameSection.id = "snake_game";
+                    const snakeDiv = document.createElement("div");
+                    snakeDiv.id = "snake";
+                    const feedDiv = document.createElement("div");
+                    feedDiv.id = "feed";
+                    gameSection.appendChild(snakeDiv);
+                    gameSection.appendChild(feedDiv);
+                    document.body.appendChild(gameSection);
+                };
+
+                initGame();
+
+                const snake = new Snake();
+                const feed = new Feed();
+
+                feed.generate(); // 첫 번째 먹이를 화면 내 무작위 위치에 생성
+
+                setInterval(() => {
+                    if (feed.isActive) {
+                        snake.moveTowards(feed);
+                    }
+                }, 100);
+            };
+
+            // 게임 실행
+            snakeGame();
+        </script>
+    </body>
+</html>
